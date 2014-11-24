@@ -30,8 +30,12 @@ module Kubr
       labels.each { |key, value| labels_string << "#{key}=#{value}," }
       labels_string
     end
+    
+    def resize_controller(id,size)
+      update_replication_controller(id,{:desiredState=>{:replicas=>size}})
+    end
 
-    ['minion', 'pod', 'service', 'replicationController'].each do |entity|
+    ['minion', 'pod', 'service', 'replicationController','operation'].each do |entity|
       define_method "list_#{entity.underscore.pluralize}" do |labels=nil|
         send_request :get, entity.pluralize, nil, labels
       end
@@ -40,7 +44,7 @@ module Kubr
         send_request :get, "#{entity.pluralize}/#{id}"
       end
 
-      unless entity == 'minion'
+      unless ['minion','operation'].include? entity
         define_method "create_#{entity.underscore}" do |config|
           send_request :post, entity.pluralize, config
         end
